@@ -1,0 +1,228 @@
+{% extends "note_app/base.html" %}
+
+{% block title %}Login - Note App{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <h1>🔐 Welcome Back!</h1>
+        <p>Sign in to access your notes</p>
+    </div>
+    
+    <form id="login-form" method="post" onsubmit="handleLogin(event)">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="username">👤 Username:</label>
+            <input type="text" id="username" name="username" required 
+                   placeholder="Enter your username" autocomplete="username">
+            <div class="field-feedback" id="username-feedback"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">🔒 Password:</label>
+            <input type="password" id="password" name="password" required 
+                   placeholder="Enter your password" autocomplete="current-password">
+            <div class="field-feedback" id="password-feedback"></div>
+        </div>
+        
+        <div class="form-options">
+            <label class="checkbox-container">
+                <input type="checkbox" id="remember" name="remember">
+                <span class="checkmark"></span>
+                Remember me
+            </label>
+            <a href="#" class="forgot-link" onclick="forgotPassword()">Forgot password?</a>
+        </div>
+        
+        <button type="submit" class="btn-primary" id="login-btn">
+            🚀 Sign In
+        </button>
+        
+        <div class="demo-login">
+            <p>Quick Demo Login:</p>
+            <button type="button" class="btn-secondary" onclick="demoLogin()">Try Demo Account</button>
+        </div>
+    </form>
+    
+    <div class="auth-footer">
+        <p>Don't have an account? <a href="/register/">Create one here</a></p>
+        <p><a href="/">← Back to Home</a></p>
+    </div>
+    
+    <!-- Login Success Message -->
+    <div id="login-success" class="success-message" style="display: none;">
+        <h3>✅ Login Successful!</h3>
+        <p>Redirecting to dashboard...</p>
+    </div>
+</div>
+
+<!-- Login JavaScript -->
+<script>
+function handleLogin(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const button = document.getElementById('login-btn');
+    const successMsg = document.getElementById('login-success');
+    
+    // Simple validation
+    if (username.length < 3) {
+        showFieldError('username', '❌ Username must be at least 3 characters');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showFieldError('password', '❌ Password must be at least 6 characters');
+        return;
+    }
+    
+    // Clear any previous errors
+    clearFieldErrors();
+    
+    // Show loading state
+    button.textContent = '⏳ Signing in...';
+    button.disabled = true;
+    
+    // Simulate login process
+    setTimeout(() => {
+        successMsg.style.display = 'block';
+        successMsg.scrollIntoView({ behavior: 'smooth' });
+        
+        setTimeout(() => {
+            window.location.href = '/dashboard/';
+        }, 2000);
+    }, 1500);
+}
+
+function demoLogin() {
+    document.getElementById('username').value = 'demo_user';
+    document.getElementById('password').value = 'demo123';
+    
+    // Trigger form submission
+    document.getElementById('login-form').dispatchEvent(new Event('submit'));
+}
+
+function forgotPassword() {
+    const email = prompt('Enter your email address for password reset:');
+    if (email && email.includes('@')) {
+        alert(`📧 Password reset link sent to ${email}!\n\n(This is just a demo - no actual email was sent)`);
+    } else if (email) {
+        alert('❌ Please enter a valid email address.');
+    }
+}
+
+function showFieldError(fieldId, message) {
+    const feedback = document.getElementById(fieldId + '-feedback');
+    feedback.textContent = message;
+    feedback.style.color = '#dc3545';
+    feedback.style.fontSize = '14px';
+    feedback.style.marginTop = '5px';
+}
+
+function clearFieldErrors() {
+    const feedbacks = document.querySelectorAll('.field-feedback');
+    feedbacks.forEach(feedback => feedback.textContent = '');
+}
+
+// Add login-specific styles
+if (!document.querySelector('#login-styles')) {
+    const style = document.createElement('style');
+    style.id = 'login-styles';
+    style.textContent = `
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header p {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 10px 0;
+        }
+        
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .checkbox-container input {
+            margin-right: 8px;
+        }
+        
+        .forgot-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+        
+        .forgot-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+        
+        .demo-login {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .demo-login p {
+            margin: 0 0 10px 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .auth-footer p {
+            margin: 10px 0;
+        }
+        
+        .success-message {
+            background: #28a745;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .success-message h3 {
+            margin: 0 0 10px 0;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .field-feedback {
+            min-height: 20px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
+{% endblock %}

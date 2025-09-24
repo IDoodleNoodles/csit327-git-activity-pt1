@@ -1,0 +1,228 @@
+{% extends "note_app/base.html" %}
+
+{% block title %}Dashboard - Note App{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <header class="dashboard-header">
+        <h1>🎉 Welcome to Your Dashboard!</h1>
+        <div class="user-controls">
+            <span>Hello, <strong>{{ user.username|default:"Guest" }}</strong>!</span>
+            <a href="/login/" class="btn-secondary">Switch User</a>
+        </div>
+    </header>
+    
+    <main class="dashboard-content">
+        <!-- Quick Actions -->
+        <div class="quick-actions mb-20">
+            <h2>Quick Actions</h2>
+            <div class="action-buttons">
+                <button class="btn-primary" onclick="addNewNote()">📝 Add New Note</button>
+                <button class="btn-secondary" onclick="showStats()">📊 View Stats</button>
+                <button class="btn-secondary" onclick="exportNotes()">💾 Export Notes</button>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="notes-section">
+            <h2>Your Notes</h2>
+            <div class="notes-grid" id="notes-container">
+                <div class="note-card">
+                    <h3>🌟 Welcome Note</h3>
+                    <p>Welcome to your personal note app! This is your first note. Click on any note to interact with it.</p>
+                    <small>Created: Today at {{ "now"|date:"H:i" }}</small>
+                    <div class="note-actions">
+                        <button class="btn-edit" onclick="editNote(this)">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteNote(this)">🗑️ Delete</button>
+                    </div>
+                </div>
+                
+                <div class="note-card">
+                    <h3>🚀 Getting Started</h3>
+                    <p>Try clicking the buttons above to see the JavaScript in action! You can add new notes, view statistics, or export your data.</p>
+                    <small>Created: Just now</small>
+                    <div class="note-actions">
+                        <button class="btn-edit" onclick="editNote(this)">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteNote(this)">🗑️ Delete</button>
+                    </div>
+                </div>
+                
+                <div class="note-card">
+                    <h3>💡 Pro Tips</h3>
+                    <p>• Use the theme toggle for dark mode<br>• Try the animation controls<br>• Hover over cards for effects<br>• Everything is interactive!</p>
+                    <small>Created: 2 minutes ago</small>
+                    <div class="note-actions">
+                        <button class="btn-edit" onclick="editNote(this)">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteNote(this)">🗑️ Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Panel -->
+        <div class="stats-panel" id="stats-panel" style="display: none;">
+            <h2>📊 Your Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>3</h3>
+                    <p>Total Notes</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Today</h3>
+                    <p>Last Activity</p>
+                </div>
+                <div class="stat-card">
+                    <h3>45</h3>
+                    <p>Words Written</p>
+                </div>
+                <div class="stat-card">
+                    <h3>100%</h3>
+                    <p>Productivity</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Additional Dashboard JavaScript -->
+<script>
+// Dashboard-specific functions
+function showStats() {
+    const panel = document.getElementById('stats-panel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        panel.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function exportNotes() {
+    const notes = document.querySelectorAll('.note-card');
+    let exportData = 'My Notes Export\n\n';
+    
+    notes.forEach((note, index) => {
+        const title = note.querySelector('h3').textContent;
+        const content = note.querySelector('p').textContent;
+        const date = note.querySelector('small').textContent;
+        exportData += `${index + 1}. ${title}\n${content}\n${date}\n\n`;
+    });
+    
+    const blob = new Blob([exportData], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'my-notes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    alert('📁 Notes exported successfully!');
+}
+
+function editNote(button) {
+    const noteCard = button.closest('.note-card');
+    const title = noteCard.querySelector('h3');
+    const content = noteCard.querySelector('p');
+    
+    const newTitle = prompt('Edit title:', title.textContent);
+    if (newTitle) title.textContent = newTitle;
+    
+    const newContent = prompt('Edit content:', content.textContent);
+    if (newContent) content.textContent = newContent;
+    
+    // Update timestamp
+    const timestamp = noteCard.querySelector('small');
+    timestamp.textContent = 'Updated: Just now';
+}
+
+function deleteNote(button) {
+    const noteCard = button.closest('.note-card');
+    const title = noteCard.querySelector('h3').textContent;
+    
+    if (confirm(`Are you sure you want to delete "${title}"?`)) {
+        noteCard.style.animation = 'fadeOut 0.5s ease-out forwards';
+        setTimeout(() => noteCard.remove(), 500);
+    }
+}
+
+// Add fade out animation
+if (!document.querySelector('#dashboard-styles')) {
+    const style = document.createElement('style');
+    style.id = 'dashboard-styles';
+    style.textContent = `
+        .quick-actions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .note-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-edit, .btn-delete {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-edit {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            margin: 0;
+            color: #667eea;
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
+{% endblock %}
