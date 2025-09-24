@@ -1,0 +1,317 @@
+{% extends "note_app/base.html" %}
+
+{% block title %}Register - Note App{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <h1>🎉 Join Note App!</h1>
+        <p>Create your account to start organizing your thoughts</p>
+    </div>
+    
+    <form id="register-form" method="post" onsubmit="handleRegister(event)">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="username">👤 Username:</label>
+            <input type="text" id="username" name="username" required 
+                   placeholder="Choose a unique username" 
+                   oninput="validateUsername(this)">
+            <div class="field-feedback" id="username-feedback"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">📧 Email Address:</label>
+            <input type="email" id="email" name="email" required 
+                   placeholder="your.email@example.com"
+                   oninput="validateEmail(this)">
+            <div class="field-feedback" id="email-feedback"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="password1">🔒 Password:</label>
+            <input type="password" id="password1" name="password1" required 
+                   placeholder="Create a strong password"
+                   oninput="validatePassword(this)">
+            <div class="password-strength" id="password-strength"></div>
+            <div class="field-feedback" id="password1-feedback"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="password2">🔒 Confirm Password:</label>
+            <input type="password" id="password2" name="password2" required 
+                   placeholder="Repeat your password"
+                   oninput="validatePasswordMatch(this)">
+            <div class="field-feedback" id="password2-feedback"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="first_name">🏷️ First Name (Optional):</label>
+            <input type="text" id="first_name" name="first_name" 
+                   placeholder="Your first name">
+        </div>
+        
+        <div class="terms-section">
+            <label class="checkbox-container">
+                <input type="checkbox" id="terms" name="terms" required>
+                <span class="checkmark"></span>
+                I agree to the <a href="#" onclick="showTerms()">Terms of Service</a> and <a href="#" onclick="showPrivacy()">Privacy Policy</a>
+            </label>
+        </div>
+        
+        <button type="submit" class="btn-primary" id="register-btn">
+            🚀 Create Account
+        </button>
+        
+        <div class="quick-register">
+            <p>Quick Demo Registration:</p>
+            <button type="button" class="btn-secondary" onclick="fillDemoData()">Fill Demo Data</button>
+        </div>
+    </form>
+    
+    <div class="auth-footer">
+        <p>Already have an account? <a href="/login/">Sign in here</a></p>
+        <p><a href="/">← Back to Home</a></p>
+    </div>
+    
+    <!-- Registration Success Message -->
+    <div id="register-success" class="success-message" style="display: none;">
+        <h3>🎉 Account Created Successfully!</h3>
+        <p>Welcome to Note App! Redirecting to your dashboard...</p>
+    </div>
+</div>
+
+<!-- Registration JavaScript -->
+<script>
+let validationState = {
+    username: false,
+    email: false,
+    password: false,
+    passwordMatch: false
+};
+
+function handleRegister(event) {
+    event.preventDefault();
+    
+    // Check if all validations pass
+    const allValid = Object.values(validationState).every(state => state);
+    const termsAccepted = document.getElementById('terms').checked;
+    
+    if (!allValid) {
+        alert('❌ Please fix all validation errors before submitting.');
+        return;
+    }
+    
+    if (!termsAccepted) {
+        alert('❌ Please accept the Terms of Service and Privacy Policy.');
+        return;
+    }
+    
+    const button = document.getElementById('register-btn');
+    const successMsg = document.getElementById('register-success');
+    
+    // Show loading state
+    button.textContent = '⏳ Creating account...';
+    button.disabled = true;
+    
+    // Simulate registration process
+    setTimeout(() => {
+        successMsg.style.display = 'block';
+        successMsg.scrollIntoView({ behavior: 'smooth' });
+        
+        setTimeout(() => {
+            window.location.href = '/dashboard/';
+        }, 3000);
+    }, 2000);
+}
+
+function validateUsername(input) {
+    const username = input.value;
+    const feedback = document.getElementById('username-feedback');
+    
+    if (username.length < 3) {
+        showError(feedback, '❌ Username must be at least 3 characters');
+        validationState.username = false;
+    } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showError(feedback, '❌ Username can only contain letters, numbers, and underscores');
+        validationState.username = false;
+    } else {
+        showSuccess(feedback, '✅ Username looks good!');
+        validationState.username = true;
+    }
+}
+
+function validateEmail(input) {
+    const email = input.value;
+    const feedback = document.getElementById('email-feedback');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+        showError(feedback, '❌ Please enter a valid email address');
+        validationState.email = false;
+    } else {
+        showSuccess(feedback, '✅ Email looks good!');
+        validationState.email = true;
+    }
+}
+
+function validatePassword(input) {
+    const password = input.value;
+    const feedback = document.getElementById('password1-feedback');
+    const strengthBar = document.getElementById('password-strength');
+    
+    let strength = 0;
+    let messages = [];
+    
+    if (password.length >= 8) strength++;
+    else messages.push('8+ characters');
+    
+    if (/[a-z]/.test(password)) strength++;
+    else messages.push('lowercase letter');
+    
+    if (/[A-Z]/.test(password)) strength++;
+    else messages.push('uppercase letter');
+    
+    if (/\d/.test(password)) strength++;
+    else messages.push('number');
+    
+    if (/[!@#$%^&*]/.test(password)) strength++;
+    else messages.push('special character');
+    
+    // Update strength bar
+    const strengthTexts = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    const strengthColors = ['#dc3545', '#fd7e14', '#ffc107', '#28a745', '#20c997'];
+    
+    strengthBar.innerHTML = `
+        <div class="strength-bar">
+            <div class="strength-fill" style="width: ${(strength/5)*100}%; background: ${strengthColors[strength-1] || '#dc3545'}"></div>
+        </div>
+        <span class="strength-text">${strengthTexts[strength-1] || 'Very Weak'}</span>
+    `;
+    
+    if (strength >= 3) {
+        showSuccess(feedback, '✅ Password strength is good!');
+        validationState.password = true;
+    } else {
+        showError(feedback, `❌ Password needs: ${messages.join(', ')}`);
+        validationState.password = false;
+    }
+    
+    // Re-validate password match if confirm password has value
+    const confirmPassword = document.getElementById('password2');
+    if (confirmPassword.value) {
+        validatePasswordMatch(confirmPassword);
+    }
+}
+
+function validatePasswordMatch(input) {
+    const password1 = document.getElementById('password1').value;
+    const password2 = input.value;
+    const feedback = document.getElementById('password2-feedback');
+    
+    if (password1 !== password2) {
+        showError(feedback, '❌ Passwords do not match');
+        validationState.passwordMatch = false;
+    } else if (password2.length > 0) {
+        showSuccess(feedback, '✅ Passwords match!');
+        validationState.passwordMatch = true;
+    }
+}
+
+function showError(element, message) {
+    element.textContent = message;
+    element.style.color = '#dc3545';
+}
+
+function showSuccess(element, message) {
+    element.textContent = message;
+    element.style.color = '#28a745';
+}
+
+function fillDemoData() {
+    document.getElementById('username').value = 'demo_user_' + Math.floor(Math.random() * 1000);
+    document.getElementById('email').value = 'demo@example.com';
+    document.getElementById('password1').value = 'DemoPass123!';
+    document.getElementById('password2').value = 'DemoPass123!';
+    document.getElementById('first_name').value = 'Demo';
+    document.getElementById('terms').checked = true;
+    
+    // Trigger validations
+    validateUsername(document.getElementById('username'));
+    validateEmail(document.getElementById('email'));
+    validatePassword(document.getElementById('password1'));
+    validatePasswordMatch(document.getElementById('password2'));
+}
+
+function showTerms() {
+    alert('📋 Terms of Service\n\n1. Use the app responsibly\n2. Don\'t share inappropriate content\n3. Respect other users\n4. Have fun organizing your notes!\n\n(This is a demo app)');
+}
+
+function showPrivacy() {
+    alert('🔒 Privacy Policy\n\nWe protect your data:\n• Notes are stored securely\n• We don\'t share your information\n• You control your data\n• This is a demo app for learning\n\nYour privacy matters to us!');
+}
+
+// Add registration-specific styles
+if (!document.querySelector('#register-styles')) {
+    const style = document.createElement('style');
+    style.id = 'register-styles';
+    style.textContent = `
+        .password-strength {
+            margin-top: 10px;
+        }
+        
+        .strength-bar {
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .strength-text {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .terms-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .terms-section a {
+            color: #cce7ff;
+            text-decoration: underline;
+        }
+        
+        .quick-register {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .quick-register p {
+            margin: 0 0 10px 0;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+        
+        .field-feedback {
+            min-height: 20px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
+{% endblock %}
